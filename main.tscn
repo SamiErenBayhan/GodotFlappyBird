@@ -4,3 +4,9 @@
 
 [node name="main" type="Node2D" unique_id=542526333]
 script = ExtResource("1_ig7tw")
+
+[node name="Pipe_timer" type="Timer" parent="." unique_id=1121465166]
+wait_time = 2.0
+autostart = true
+
+[connection signal="timeout" from="Pipe_timer" to="." method="_on_pipe_timer_timeout"]
