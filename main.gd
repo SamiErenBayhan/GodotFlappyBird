@@ -13,38 +13,66 @@ const PIPE_HEIGHT = 500
 
 const GAP_SIZE = 200 # İki boru arasındaki kuşun geçeceği piksel boşluğu
 
+var score = 0
+
 func _ready() -> void:
 	pass 
 
 func _physics_process(delta):
-	velocity.y += GRAVITY * delta #Her karede yerçekimini kuşun Y hızına ekliyoruz. Kuş gitgide hızlanarak düşüyor
-	bird_position += velocity * delta #burada da kuşun pozisyonunu düşürüyoruz ve pürüzsük bir şekilde hızlanarak düşüyor
+	velocity.y += GRAVITY * delta 
+	bird_position += velocity * delta 
 	
-	if pipes.size() > 0:
-		if pipes[0].x < -50:
+	if pipes.size() > 0 and pipes[0] != null:
+		if pipes[0].x < -100: 
 			pipes.remove_at(0)
 	
 	for i in range(pipes.size()):
-		pipes[i].x -= PIPE_SPEED * delta #x değerini sürekli küçülterek boruların sağdan sola gitmesini sağlıyoruz
-	
-	var bird_rect = Rect2(bird_position, Vector2(32,32))
+		if i < pipes.size(): 
+			pipes[i].x -= PIPE_SPEED * delta 
 	
 	for i in range(pipes.size()):
+		if i < pipes.size():
+			if pipes[i].x < 100 and pipes[i].x > 100 - (PIPE_SPEED * delta):
+				score += 1
+	
+	var bird_rect = Rect2(bird_position, Vector2(32, 32))
+	for i in range(pipes.size()):
 		var rects = get_pipe_rects(i)
-		if bird_rect.intersects(rects[0]) or bird_rect.intersects(rects[1]):
-			game_over()
+		if rects[0] != Rect2():
+			if bird_rect.intersects(rects[0]) or bird_rect.intersects(rects[1]):
+				game_over()
+				return
 	
 	queue_redraw()
 
 func _draw():
-	var bird_rect = Rect2(bird_position, Vector2(32,32)) 
+	# 1. Kuşumuzu çiziyoruz
+	var bird_rect = Rect2(bird_position, Vector2(32, 32)) 
 	draw_rect(bird_rect, Color.BLUE)
 	
-	for i in range(pipes.size()):
-		var rects = get_pipe_rects(i) 
-		draw_rect(rects[1], Color.GREEN)
-		draw_rect(rects[0], Color.YELLOW)
+	# 2. SKOR TABELASI (Hata veren get_default_font yerine null çaktık kral!)
+	draw_string(null, Vector2(350, 50), str(score), HORIZONTAL_ALIGNMENT_CENTER, -1, 32, Color.WHITE)
 	
+	# 3. Eğer liste boşsa çizimi durdur
+	if pipes.size() == 0:
+		return
+		
+	# 4. Boruları çiziyoruz
+	for i in range(pipes.size()):
+		if i >= pipes.size():
+			break
+			
+		var pipe_pos = pipes[i]
+		
+		# Alt Boru
+		var bottom_rect = Rect2(pipe_pos, Vector2(PIPE_WIDTH, PIPE_HEIGHT))
+		draw_rect(bottom_rect, Color.GREEN)
+		
+		# Üst Boru
+		var top_pos_y = pipe_pos.y - GAP_SIZE - PIPE_HEIGHT
+		var top_rect = Rect2(Vector2(pipe_pos.x, top_pos_y), Vector2(PIPE_WIDTH, PIPE_HEIGHT))
+		draw_rect(top_rect, Color.GREEN)
+
 func _input(event):
 	if event.is_action_pressed("ui_accept"):
 			if $Pipe_timer.is_stopped():
@@ -57,10 +85,14 @@ func _on_pipe_timer_timeout() -> void:
 	pipes.append(new_pipe)	
 	
 func game_over():
-	bird_position = Vector2(100, 300)#anlık piksel konum
+	bird_position = Vector2(100, 300)
 	velocity = Vector2.ZERO
-	$Pipe_timer.stop()
 	pipes.clear()
+	score = 0 
+	if has_node("PipeTimer"):
+		$PipeTimer.stop()
+	elif has_node("Timer"): # Eğer adı düz Timer ise onu durdur
+		$Timer.stop()
 	queue_redraw()
 	
 func get_pipe_rects(index: int) -> Array:
