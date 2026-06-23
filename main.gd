@@ -50,29 +50,20 @@ func _draw():
 	var bird_rect = Rect2(bird_position, Vector2(32, 32)) 
 	draw_rect(bird_rect, Color.BLUE)
 	
-	# 2. SKOR TABELASI (Hata veren get_default_font yerine null çaktık kral!)
-	draw_string(null, Vector2(350, 50), str(score), HORIZONTAL_ALIGNMENT_CENTER, -1, 32, Color.WHITE)
-	
-	# 3. Eğer liste boşsa çizimi durdur
 	if pipes.size() == 0:
 		return
 		
-	# 4. Boruları çiziyoruz
+	# 2. Boruları çiziyoruz (Yazı falan yok, tertemiz!)
 	for i in range(pipes.size()):
-		if i >= pipes.size():
-			break
-			
+		if i >= pipes.size(): break
 		var pipe_pos = pipes[i]
 		
-		# Alt Boru
 		var bottom_rect = Rect2(pipe_pos, Vector2(PIPE_WIDTH, PIPE_HEIGHT))
 		draw_rect(bottom_rect, Color.GREEN)
 		
-		# Üst Boru
 		var top_pos_y = pipe_pos.y - GAP_SIZE - PIPE_HEIGHT
 		var top_rect = Rect2(Vector2(pipe_pos.x, top_pos_y), Vector2(PIPE_WIDTH, PIPE_HEIGHT))
 		draw_rect(top_rect, Color.GREEN)
-
 func _input(event):
 	if event.is_action_pressed("ui_accept"):
 			if $Pipe_timer.is_stopped():
